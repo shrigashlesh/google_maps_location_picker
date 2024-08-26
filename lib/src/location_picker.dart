@@ -30,8 +30,9 @@ class LocationPicker extends StatefulWidget {
   LocationPicker({
     Key? key,
     required this.apiKey,
-    this.onPlacePicked,
+    required this.onPlacePicked,
     required this.initialPosition,
+    this.initialZoomLevel = 15,
     this.useCurrentLocation,
     this.desiredLocationAccuracy = LocationAccuracy.high,
     this.onMapCreated,
@@ -78,11 +79,13 @@ class LocationPicker extends StatefulWidget {
     this.onMapTypeChanged,
     this.zoomGesturesEnabled = true,
     this.zoomControlsEnabled = false,
+    this.polygons = const <Polygon>{},
   }) : super(key: key);
 
   final String apiKey;
 
   final LatLng initialPosition;
+  final double initialZoomLevel;
   final bool? useCurrentLocation;
   final LocationAccuracy desiredLocationAccuracy;
 
@@ -133,7 +136,7 @@ class LocationPicker extends StatefulWidget {
   ///
   /// If you managed to use your own [selectedPlaceWidgetBuilder], then this WILL NOT be invoked, and you need use data which is
   /// being sent with [selectedPlaceWidgetBuilder].
-  final ValueChanged<PickResult>? onPlacePicked;
+  final ValueChanged<PickResult> onPlacePicked;
 
   /// optional - builds selected place's UI
   ///
@@ -232,6 +235,11 @@ class LocationPicker extends StatefulWidget {
 
   /// Allow user to make visible the zoom button
   final bool zoomControlsEnabled;
+
+  /// Polygons to be placed on the map.
+  ///
+  /// Defaults to `const <Polygon>{}`
+  final Set<Polygon> polygons;
 
   @override
   _PlacePickerState createState() => _PlacePickerState();
@@ -463,6 +471,7 @@ class _PlacePickerState extends State<LocationPicker> {
     return GoogleMapLocationPicker(
       fullMotion: !widget.resizeToAvoidBottomInset,
       initialTarget: initialTarget,
+      initialZoomLevel: widget.initialZoomLevel,
       appBarKey: appBarKey,
       selectedPlaceWidgetBuilder: widget.selectedPlaceWidgetBuilder,
       pinBuilder: widget.pinBuilder,
@@ -510,6 +519,7 @@ class _PlacePickerState extends State<LocationPicker> {
       onCameraIdle: widget.onCameraIdle,
       zoomGesturesEnabled: widget.zoomGesturesEnabled,
       zoomControlsEnabled: widget.zoomControlsEnabled,
+      polygons: widget.polygons,
     );
   }
 

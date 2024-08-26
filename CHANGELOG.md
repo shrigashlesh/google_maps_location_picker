@@ -1,3 +1,9 @@
+## [3.1.4] - 26/Aug/2024
+
+- Add `initialZoomLevel` parameter
+- Add `polygons` parameter
+- Make `onPlacePicked` parameter `required` to avoid bugs.
+
 ## [3.1.3] - 26/Aug/2024
 
 - Bump dependencies.

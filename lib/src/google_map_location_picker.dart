@@ -33,6 +33,8 @@ class GoogleMapLocationPicker extends StatelessWidget {
     Key? key,
     required this.initialTarget,
     required this.appBarKey,
+    required this.onPlacePicked,
+    required this.initialZoomLevel,
     this.selectedPlaceWidgetBuilder,
     this.pinBuilder,
     this.onSearchFailed,
@@ -43,7 +45,6 @@ class GoogleMapLocationPicker extends StatelessWidget {
     this.enableMyLocationButton,
     this.onToggleMapType,
     this.onMyLocation,
-    this.onPlacePicked,
     this.usePinPointingSearch,
     this.usePlaceDetailSearch,
     this.selectInitialPosition,
@@ -59,9 +60,11 @@ class GoogleMapLocationPicker extends StatelessWidget {
     this.zoomGesturesEnabled = true,
     this.zoomControlsEnabled = false,
     this.fullMotion = false,
+    required this.polygons,
   }) : super(key: key);
 
   final LatLng initialTarget;
+  final double initialZoomLevel;
   final GlobalKey appBarKey;
 
   final SelectedPlaceWidgetBuilder? selectedPlaceWidgetBuilder;
@@ -72,7 +75,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
   final MapCreatedCallback? onMapCreated;
   final VoidCallback? onToggleMapType;
   final VoidCallback? onMyLocation;
-  final ValueChanged<PickResult>? onPlacePicked;
+  final ValueChanged<PickResult> onPlacePicked;
 
   final int? debounceMilliseconds;
   final bool? enableMapTypeButton;
@@ -104,6 +107,8 @@ class GoogleMapLocationPicker extends StatelessWidget {
 
   /// Use never scrollable scroll-view with maximum dimensions to prevent unnecessary re-rendering.
   final bool fullMotion;
+
+  final Set<Polygon> polygons;
 
   _searchByCameraLocation(PlaceProvider provider) async {
     // We don't want to search location again if camera location is changed by zooming in/out.
@@ -197,8 +202,10 @@ class GoogleMapLocationPicker extends StatelessWidget {
   }
 
   Widget _buildGoogleMapInner(PlaceProvider provider, MapType mapType) {
-    CameraPosition initialCameraPosition =
-        CameraPosition(target: this.initialTarget, zoom: 15);
+    CameraPosition initialCameraPosition = CameraPosition(
+      target: this.initialTarget,
+      zoom: this.initialZoomLevel,
+    );
     return GoogleMap(
       zoomGesturesEnabled: this.zoomGesturesEnabled,
       zoomControlsEnabled: false,
@@ -268,15 +275,23 @@ class GoogleMapLocationPicker extends StatelessWidget {
       // gestureRecognizers make it possible to navigate the map when it's a
       // child in a scroll view e.g ListView, SingleChildScrollView...
       gestureRecognizers: Set()
-        ..add(Factory<EagerGestureRecognizer>(() => EagerGestureRecognizer())),
+        ..add(
+          Factory<EagerGestureRecognizer>(
+            () => EagerGestureRecognizer(),
+          ),
+        ),
+      polygons: polygons,
     );
   }
 
   Widget _buildGoogleMap(BuildContext context) {
     return Selector<PlaceProvider, MapType>(
-        selector: (_, provider) => provider.mapType,
-        builder: (_, data, __) => this._buildGoogleMapInner(
-            PlaceProvider.of(context, listen: false), data));
+      selector: (_, provider) => provider.mapType,
+      builder: (_, data, __) => this._buildGoogleMapInner(
+        PlaceProvider.of(context, listen: false),
+        data,
+      ),
+    );
   }
 
   Widget _buildPin() {
@@ -491,6 +506,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
     WidgetStateColor buttonColor = WidgetStateColor.resolveWith(
       (states) => canBePicked ? Colors.lightGreen : Colors.red,
     );
+
     return Container(
       margin: EdgeInsets.all(10),
       child: Column(
@@ -511,7 +527,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
                         overlayColor: buttonColor,
                         onTap: () {
                           if (canBePicked) {
-                            onPlacePicked!(result);
+                            onPlacePicked(result);
                           }
                         },
                         child: Icon(
@@ -534,7 +550,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
                         overlayColor: buttonColor,
                         onTap: () {
                           if (canBePicked) {
-                            onPlacePicked!(result);
+                            onPlacePicked(result);
                           }
                         },
                         child: Row(
