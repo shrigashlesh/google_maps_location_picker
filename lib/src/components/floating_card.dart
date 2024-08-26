@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_place_picker_mb/src/components/rounded_frame.dart';
+
+import '../../google_maps_location_picker.dart';
 
 class FloatingCard extends StatelessWidget {
   const FloatingCard({

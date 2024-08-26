@@ -1,18 +1,10 @@
-# Google Maps Place Picker - MB edition
+# Google Maps Location Picker
 
-> This README is only slightly changed from its original repo which this repository was forked from. Due to little maintenance by the original author, I want to provide this fork that is not just more maintained, I also add more functionality to it and pick any significant changes and PRs on the original repository, as well.
-> 
-> To install:  
-> 
-> ```
-> flutter pub add google_maps_place_picker_mb
-> ```
-> 
-> ~ _martin-braun_
+> This is a fork from [google_maps_place_picker_mb](https://github.com/martin-braun-net/google_maps_place_picker_mb)
 
 ----------------------------------------------------
 
-A Flutter plugin which provides 'Picking Place' using [Google Maps](https://developers.google.com/maps/) widget.
+A Flutter plugin which provides 'Picking Location' using [Google Maps](https://developers.google.com/maps/) widget.
 
 The project relies on below packages.
 
@@ -153,7 +145,7 @@ If you want to run your app on the Simulator, please make sure to set a location
 
 ### Basic usage
 
-First of all, it is recommend to enable Hybrid Composition on Android to avoid flickering issues when the map gets redrawn: 
+First of all, it is recommended to enable Hybrid Composition on Android to avoid flickering issues when the map gets redrawn: 
 
 ```dart
 void main() {
@@ -164,13 +156,13 @@ void main() {
 }
 ```
 
-You can now use PlacePicker by pushing to a new page using Navigator, OR put as a child of any widget.  
+You can now use LocationPicker by pushing to a new page using Navigator, OR put as a child of any widget.  
 When the user picks a place on the map, it will return result to 'onPlacePicked' with PickResult type.
 Alternatively, you can build your own way with 'selectedPlaceWidgetBuilder' and fetch result from it (See the instruction below).
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
+import 'package:google_maps_place_picker_mb/google_maps_location_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:io' show Platform;
 
@@ -179,7 +171,7 @@ import 'dart:io' show Platform;
 Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PlacePicker(
+        builder: (context) => LocationPicker(
           apiKey: Platform.isAndroid
               ? "YOUR ANDROID API KEY"
               : "YOUR IOS API KEY"
@@ -228,7 +220,7 @@ reviews | List\<Review\> | JSON array of up to five reviews
 
 [More info](https://developers.google.com/places/web-service/details) about results at Google document.
 
-#### PlacePicker
+#### LocationPicker
 Parameter | Type | Description
 --------- | ---- | -----------
 apiKey | String | (Required) Your google map API Key
@@ -297,7 +289,7 @@ However, if you don't like this UI/UX, simply override the builder using 'select
 
 ```dart
 ...
-PlacePicker(apiKey: APIKeys.apiKey,
+LocationPicker(apiKey: APIKeys.apiKey,
             ...
             selectedPlaceWidgetBuilder: (_, selectedPlace, state, isSearchBarFocused) {
               return isSearchBarFocused
@@ -330,7 +322,7 @@ By default, Pin icon is provided with very simple picking animation when moving 
 However, you can also create your own pin widget using 'pinBuilder'
 
 ```dart
-PlacePicker(apiKey: APIKeys.apiKey,
+LocationPicker(apiKey: APIKeys.apiKey,
             ...
             pinBuilder: (context, state) {
                   if (state == PinState.Idle) {
@@ -353,7 +345,7 @@ state | PinState | State of pin. (Preparing; When map loading, Idle, Dragging)
 By default the map will show up, immediately. You might want to show a nice customized overlay modal with instructions, especially, when the map is turned on after first start of your app. In that case this custom widget builder makes sense, because you will obtain the most freedom in terms of branding to avoid people thinking they opened Google Maps. 
 
 ```dart
-PlacePicker(apiKey: APIKeys.apiKey,
+LocationPicker(apiKey: APIKeys.apiKey,
             ...
             introModalWidgetBuilder: (context,  close) {
               return Positioned(

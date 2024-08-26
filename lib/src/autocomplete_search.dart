@@ -1,39 +1,40 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
-import 'package:google_maps_place_picker_mb/providers/place_provider.dart';
-import 'package:google_maps_place_picker_mb/providers/search_provider.dart';
-import 'package:google_maps_place_picker_mb/src/components/prediction_tile.dart';
-import 'package:google_maps_place_picker_mb/src/controllers/autocomplete_search_controller.dart';
 import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:provider/provider.dart';
 
+import '../google_maps_location_picker.dart';
+import '../providers/place_provider.dart';
+import '../providers/search_provider.dart';
+import 'components/prediction_tile.dart';
+import 'controllers/autocomplete_search_controller.dart';
+
 class AutoCompleteSearch extends StatefulWidget {
-  const AutoCompleteSearch(
-      {Key? key,
-      required this.sessionToken,
-      required this.onPicked,
-      required this.appBarKey,
-      this.hintText = "Search here",
-      this.searchingText = "Searching...",
-      this.hidden = false,
-      this.height = 40,
-      this.contentPadding = EdgeInsets.zero,
-      this.debounceMilliseconds,
-      this.onSearchFailed,
-      required this.searchBarController,
-      this.autocompleteOffset,
-      this.autocompleteRadius,
-      this.autocompleteLanguage,
-      this.autocompleteComponents,
-      this.autocompleteTypes,
-      this.strictbounds,
-      this.region,
-      this.initialSearchString,
-      this.searchForInitialValue,
-      this.autocompleteOnTrailingWhitespace})
-      : super(key: key);
+  const AutoCompleteSearch({
+    Key? key,
+    required this.sessionToken,
+    required this.onPicked,
+    required this.appBarKey,
+    this.hintText = "Search here",
+    this.searchingText = "Searching...",
+    this.hidden = false,
+    this.height = 40,
+    this.contentPadding = EdgeInsets.zero,
+    this.debounceMilliseconds,
+    this.onSearchFailed,
+    required this.searchBarController,
+    this.autocompleteOffset,
+    this.autocompleteRadius,
+    this.autocompleteLanguage,
+    this.autocompleteComponents,
+    this.autocompleteTypes,
+    this.strictBounds,
+    this.region,
+    this.initialSearchString,
+    this.searchForInitialValue,
+    this.autocompleteOnTrailingWhitespace,
+  }) : super(key: key);
 
   final String? sessionToken;
   final String? hintText;
@@ -50,7 +51,7 @@ class AutoCompleteSearch extends StatefulWidget {
   final String? autocompleteLanguage;
   final List<String>? autocompleteTypes;
   final List<Component>? autocompleteComponents;
-  final bool? strictbounds;
+  final bool? strictBounds;
   final String? region;
   final GlobalKey appBarKey;
   final String? initialSearchString;
@@ -308,7 +309,7 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
         language: widget.autocompleteLanguage,
         types: widget.autocompleteTypes ?? const [],
         components: widget.autocompleteComponents ?? const [],
-        strictbounds: widget.strictbounds ?? false,
+        strictbounds: widget.strictBounds ?? false,
         region: widget.region,
       );
 

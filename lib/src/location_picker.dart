@@ -4,17 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
-import 'package:google_maps_place_picker_mb/providers/place_provider.dart';
-import 'package:google_maps_place_picker_mb/src/autocomplete_search.dart';
-import 'package:google_maps_place_picker_mb/src/controllers/autocomplete_search_controller.dart';
-import 'package:google_maps_place_picker_mb/src/google_map_place_picker.dart';
 import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import 'dart:io' show Platform;
 
 import 'package:uuid/uuid.dart';
+
+import '../google_maps_location_picker.dart';
+import '../providers/place_provider.dart';
+import 'autocomplete_search.dart';
+import 'controllers/autocomplete_search_controller.dart';
+import 'google_map_location_picker.dart';
 
 typedef IntroModalWidgetBuilder = Widget Function(
   BuildContext context,
@@ -25,8 +26,8 @@ enum PinState { Preparing, Idle, Dragging }
 
 enum SearchingState { Idle, Searching }
 
-class PlacePicker extends StatefulWidget {
-  PlacePicker({
+class LocationPicker extends StatefulWidget {
+  LocationPicker({
     Key? key,
     required this.apiKey,
     this.onPlacePicked,
@@ -58,7 +59,7 @@ class PlacePicker extends StatefulWidget {
     this.autocompleteLanguage,
     this.autocompleteComponents,
     this.autocompleteTypes,
-    this.strictbounds,
+    this.strictBounds,
     this.region,
     this.pickArea,
     this.selectInitialPosition = false,
@@ -108,7 +109,7 @@ class PlacePicker extends StatefulWidget {
   final String? autocompleteLanguage;
   final List<String>? autocompleteTypes;
   final List<Component>? autocompleteComponents;
-  final bool? strictbounds;
+  final bool? strictBounds;
   final String? region;
 
   /// If set the picker can only pick addresses in the given circle area.
@@ -137,7 +138,7 @@ class PlacePicker extends StatefulWidget {
   /// optional - builds selected place's UI
   ///
   /// It is provided by default if you leave it as a null.
-  /// INPORTANT: If this is non-null, [onPlacePicked] will not be invoked, as there will be no default 'Select here' button.
+  /// IMPORTANT: If this is non-null, [onPlacePicked] will not be invoked, as there will be no default 'Select here' button.
   final SelectedPlaceWidgetBuilder? selectedPlaceWidgetBuilder;
 
   /// optional - builds customized pin widget which indicates current pointing position.
@@ -172,7 +173,7 @@ class PlacePicker extends StatefulWidget {
   /// Allow searching place when zoom has changed. By default searching is disabled when zoom has changed in order to prevent unwilling API usage.
   final bool forceSearchOnZoomChanged;
 
-  /// Whether to display appbar backbutton. Defaults to true.
+  /// Whether to display appbar back button. Defaults to true.
   final bool automaticallyImplyAppBarLeading;
 
   /// Will perform an autocomplete search, if set to true. Note that setting
@@ -236,7 +237,7 @@ class PlacePicker extends StatefulWidget {
   _PlacePickerState createState() => _PlacePickerState();
 }
 
-class _PlacePickerState extends State<PlacePicker> {
+class _PlacePickerState extends State<LocationPicker> {
   GlobalKey appBarKey = GlobalKey();
   late final Future<PlaceProvider> _futureProvider;
   PlaceProvider? provider;
@@ -277,11 +278,8 @@ class _PlacePickerState extends State<PlacePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        onWillPop: () {
-          searchBarController.clearOverlay();
-          return Future.value(true);
-        },
+    return PopScope(
+        onPopInvokedWithResult: (_, __) => searchBarController.clearOverlay(),
         child: FutureBuilder<PlaceProvider>(
           future: _futureProvider,
           builder: (context, snapshot) {
@@ -370,33 +368,34 @@ class _PlacePickerState extends State<PlacePicker> {
             : Container(),
         Expanded(
           child: AutoCompleteSearch(
-              appBarKey: appBarKey,
-              searchBarController: searchBarController,
-              sessionToken: provider!.sessionToken,
-              hintText: widget.hintText,
-              searchingText: widget.searchingText,
-              debounceMilliseconds: widget.autoCompleteDebounceInMilliseconds,
-              onPicked: (prediction) {
-                if (mounted) {
-                  _pickPrediction(prediction);
-                }
-              },
-              onSearchFailed: (status) {
-                if (widget.onAutoCompleteFailed != null) {
-                  widget.onAutoCompleteFailed!(status);
-                }
-              },
-              autocompleteOffset: widget.autocompleteOffset,
-              autocompleteRadius: widget.autocompleteRadius,
-              autocompleteLanguage: widget.autocompleteLanguage,
-              autocompleteComponents: widget.autocompleteComponents,
-              autocompleteTypes: widget.autocompleteTypes,
-              strictbounds: widget.strictbounds,
-              region: widget.region,
-              initialSearchString: widget.initialSearchString,
-              searchForInitialValue: widget.searchForInitialValue,
-              autocompleteOnTrailingWhitespace:
-                  widget.autocompleteOnTrailingWhitespace),
+            appBarKey: appBarKey,
+            searchBarController: searchBarController,
+            sessionToken: provider!.sessionToken,
+            hintText: widget.hintText,
+            searchingText: widget.searchingText,
+            debounceMilliseconds: widget.autoCompleteDebounceInMilliseconds,
+            onPicked: (prediction) {
+              if (mounted) {
+                _pickPrediction(prediction);
+              }
+            },
+            onSearchFailed: (status) {
+              if (widget.onAutoCompleteFailed != null) {
+                widget.onAutoCompleteFailed!(status);
+              }
+            },
+            autocompleteOffset: widget.autocompleteOffset,
+            autocompleteRadius: widget.autocompleteRadius,
+            autocompleteLanguage: widget.autocompleteLanguage,
+            autocompleteComponents: widget.autocompleteComponents,
+            autocompleteTypes: widget.autocompleteTypes,
+            strictBounds: widget.strictBounds,
+            region: widget.region,
+            initialSearchString: widget.initialSearchString,
+            searchForInitialValue: widget.searchForInitialValue,
+            autocompleteOnTrailingWhitespace:
+                widget.autocompleteOnTrailingWhitespace,
+          ),
         ),
         SizedBox(width: 5),
       ],
@@ -461,7 +460,7 @@ class _PlacePickerState extends State<PlacePicker> {
   }
 
   Widget _buildMap(LatLng initialTarget) {
-    return GoogleMapPlacePicker(
+    return GoogleMapLocationPicker(
       fullMotion: !widget.resizeToAvoidBottomInset,
       initialTarget: initialTarget,
       appBarKey: appBarKey,
@@ -516,32 +515,33 @@ class _PlacePickerState extends State<PlacePicker> {
 
   Widget _buildIntroModal(BuildContext context) {
     return StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) {
-      return showIntroModal && widget.introModalWidgetBuilder != null
-          ? Stack(children: [
-              Positioned(
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-                child: Material(
-                  type: MaterialType.canvas,
-                  color: Color.fromARGB(128, 0, 0, 0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
+      builder: (BuildContext context, StateSetter setState) {
+        return showIntroModal && widget.introModalWidgetBuilder != null
+            ? Stack(children: [
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                  child: Material(
+                    type: MaterialType.canvas,
+                    color: Color.fromARGB(128, 0, 0, 0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    child: ClipRect(),
                   ),
-                  child: ClipRect(),
                 ),
-              ),
-              widget.introModalWidgetBuilder!(context, () {
-                if (mounted) {
-                  setState(() {
-                    showIntroModal = false;
-                  });
-                }
-              })
-            ])
-          : Container();
-    });
+                widget.introModalWidgetBuilder!(context, () {
+                  if (mounted) {
+                    setState(() {
+                      showIntroModal = false;
+                    });
+                  }
+                })
+              ])
+            : Container();
+      },
+    );
   }
 }

@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_place_picker_mb/src/models/pick_result.dart';
-import 'package:google_maps_place_picker_mb/src/place_picker.dart';
 import 'package:flutter_google_maps_webservices/geocoding.dart';
 import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
+
+import '../google_maps_location_picker.dart';
 
 class PlaceProvider extends ChangeNotifier {
   PlaceProvider(
@@ -85,9 +85,7 @@ class PlaceProvider extends ChangeNotifier {
           'Location permissions are permanently denied, we cannot request permissions.');
     }
 
-    _currentPosition = await Geolocator.getCurrentPosition(
-      desiredAccuracy: desiredAccuracy ?? LocationAccuracy.best,
-    );
+    _currentPosition = await Geolocator.getCurrentPosition();
   }
 
   Position? _currentPosition;
@@ -144,10 +142,10 @@ class PlaceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _isSeachBarFocused = false;
-  bool get isSearchBarFocused => _isSeachBarFocused;
+  bool _isSearchBarFocused = false;
+  bool get isSearchBarFocused => _isSearchBarFocused;
   set isSearchBarFocused(bool focused) {
-    _isSeachBarFocused = focused;
+    _isSearchBarFocused = focused;
     notifyListeners();
   }
 

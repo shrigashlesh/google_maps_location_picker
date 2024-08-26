@@ -1,3 +1,8 @@
+## [3.1.3] - 26/Aug/2024
+
+- Bump dependencies.
+- Minor fixes.
+
 ## [3.1.2] - 13/Sep/2023
 
 - Fix potential crash on hesitant camera movements #67
