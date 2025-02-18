@@ -22,6 +22,15 @@ typedef IntroModalWidgetBuilder = Widget Function(
   Function? close,
 );
 
+typedef SearchingWidgetBuilder = Widget Function(
+  BuildContext context,
+);
+
+typedef SearchDecorator = InputDecoration Function(
+  VoidCallback onClear,
+  bool hasText,
+);
+
 enum PinState { Preparing, Idle, Dragging }
 
 enum SearchingState { Idle, Searching }
@@ -80,6 +89,8 @@ class LocationPicker extends StatefulWidget {
     this.zoomGesturesEnabled = true,
     this.zoomControlsEnabled = false,
     this.polygons = const <Polygon>{},
+    this.searchingWidgetBuilder,
+    this.searchDecorator,
   }) : super(key: key);
 
   final String apiKey;
@@ -241,6 +252,14 @@ class LocationPicker extends StatefulWidget {
   /// Defaults to `const <Polygon>{}`
   final Set<Polygon> polygons;
 
+  /// optional - builds searching UI
+  ///
+  /// It is provided by default if you leave it as a null.
+  final SearchingWidgetBuilder? searchingWidgetBuilder;
+
+  /// optional - search textfield input decorator
+  ///
+  final SearchDecorator? searchDecorator;
   @override
   _PlacePickerState createState() => _PlacePickerState();
 }
@@ -378,9 +397,9 @@ class _PlacePickerState extends State<LocationPicker> {
           child: AutoCompleteSearch(
             appBarKey: appBarKey,
             searchBarController: searchBarController,
+            searchDecorator: widget.searchDecorator,
+            searchingWidgetBuilder: widget.searchingWidgetBuilder,
             sessionToken: provider!.sessionToken,
-            hintText: widget.hintText,
-            searchingText: widget.searchingText,
             debounceMilliseconds: widget.autoCompleteDebounceInMilliseconds,
             onPicked: (prediction) {
               if (mounted) {
@@ -511,7 +530,6 @@ class _PlacePickerState extends State<LocationPicker> {
       },
       onMoveStart: () {
         if (provider == null) return;
-        searchBarController.reset();
       },
       onPlacePicked: widget.onPlacePicked,
       onCameraMoveStarted: widget.onCameraMoveStarted,

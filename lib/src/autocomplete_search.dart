@@ -16,11 +16,7 @@ class AutoCompleteSearch extends StatefulWidget {
     required this.sessionToken,
     required this.onPicked,
     required this.appBarKey,
-    this.hintText = "Search here",
-    this.searchingText = "Searching...",
     this.hidden = false,
-    this.height = 40,
-    this.contentPadding = EdgeInsets.zero,
     this.debounceMilliseconds,
     this.onSearchFailed,
     required this.searchBarController,
@@ -34,14 +30,12 @@ class AutoCompleteSearch extends StatefulWidget {
     this.initialSearchString,
     this.searchForInitialValue,
     this.autocompleteOnTrailingWhitespace,
+    this.searchingWidgetBuilder,
+    this.searchDecorator,
   }) : super(key: key);
 
   final String? sessionToken;
-  final String? hintText;
-  final String? searchingText;
   final bool hidden;
-  final double height;
-  final EdgeInsetsGeometry contentPadding;
   final int? debounceMilliseconds;
   final ValueChanged<Prediction> onPicked;
   final ValueChanged<String>? onSearchFailed;
@@ -57,7 +51,8 @@ class AutoCompleteSearch extends StatefulWidget {
   final String? initialSearchString;
   final bool? searchForInitialValue;
   final bool? autocompleteOnTrailingWhitespace;
-
+  final SearchingWidgetBuilder? searchingWidgetBuilder;
+  final SearchDecorator? searchDecorator;
   @override
   AutoCompleteSearchState createState() => AutoCompleteSearchState();
 }
@@ -86,6 +81,27 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final placeProvider = PlaceProvider.of(context, listen: false);
+
+    // Remove previous listener if it exists
+    placeProvider.removeListener(_updateAddress);
+
+    // Add a new listener
+    placeProvider.addListener(_updateAddress);
+  }
+
+// Define a function to update the address
+  void _updateAddress() {
+    final placeProvider = PlaceProvider.of(context, listen: false);
+    if (placeProvider.isSearchBarFocused) return;
+    final formattedAddress = placeProvider.selectedPlace?.formattedAddress;
+    if (formattedAddress != null) controller.text = formattedAddress;
+  }
+
+  @override
   void dispose() {
     controller.removeListener(_onSearchInputChange);
     controller.dispose();
@@ -102,69 +118,20 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
     return !widget.hidden
         ? ChangeNotifierProvider.value(
             value: provider,
-            child: RoundedFrame(
-              height: widget.height,
-              padding: const EdgeInsets.only(right: 10),
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black54
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              elevation: 4.0,
-              child: Row(
-                children: <Widget>[
-                  SizedBox(width: 10),
-                  Icon(Icons.search),
-                  SizedBox(width: 10),
-                  Expanded(child: _buildSearchTextField()),
-                  _buildTextClearIcon(),
-                ],
-              ),
-            ),
+            child: ValueListenableBuilder(
+                valueListenable: controller,
+                builder: (context, value, _) {
+                  return TextField(
+                    controller: controller,
+                    focusNode: focus,
+                    decoration: widget.searchDecorator?.call(
+                      clearText,
+                      value.text.isNotEmpty,
+                    ),
+                  );
+                }),
           )
-        : Container();
-  }
-
-  Widget _buildSearchTextField() {
-    return TextField(
-      controller: controller,
-      focusNode: focus,
-      decoration: InputDecoration(
-        hintText: widget.hintText,
-        border: InputBorder.none,
-        errorBorder: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
-        disabledBorder: InputBorder.none,
-        focusedErrorBorder: InputBorder.none,
-        isDense: true,
-        contentPadding: widget.contentPadding,
-      ),
-    );
-  }
-
-  Widget _buildTextClearIcon() {
-    return Selector<SearchProvider, String>(
-        selector: (_, provider) => provider.searchTerm,
-        builder: (_, data, __) {
-          if (data.length > 0) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: GestureDetector(
-                child: Icon(
-                  Icons.clear,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
-                ),
-                onTap: () {
-                  clearText();
-                },
-              ),
-            );
-          } else {
-            return SizedBox(width: 10);
-          }
-        });
+        : SizedBox();
   }
 
   _onSearchInputChange() {
@@ -172,7 +139,7 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
     this.provider.searchTerm = controller.text;
 
     PlaceProvider provider = PlaceProvider.of(context, listen: false);
-
+    if (!provider.isSearchBarFocused) return;
     if (controller.text.isEmpty) {
       provider.debounceTimer?.cancel();
       _searchPlace(controller.text);
@@ -254,25 +221,27 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
   }
 
   Widget _buildSearchingOverlay() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-      child: Row(
-        children: <Widget>[
-          SizedBox(
-            height: 24,
-            width: 24,
-            child: CircularProgressIndicator(strokeWidth: 3),
-          ),
-          SizedBox(width: 24),
-          Expanded(
-            child: Text(
-              widget.searchingText ?? "Searching...",
-              style: TextStyle(fontSize: 16),
+    return widget.searchingWidgetBuilder != null
+        ? widget.searchingWidgetBuilder!(context)
+        : Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            child: Row(
+              children: <Widget>[
+                SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(strokeWidth: 3),
+                ),
+                SizedBox(width: 24),
+                Expanded(
+                  child: Text(
+                    "Searching...",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                )
+              ],
             ),
-          )
-        ],
-      ),
-    );
+          );
   }
 
   Widget _buildPredictionOverlay(List<Prediction> predictions) {
@@ -331,7 +300,7 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
   }
 
   resetSearchBar() {
-    clearText();
+    clearOverlay();
     focus.unfocus();
   }
 
