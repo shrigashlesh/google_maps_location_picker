@@ -1,14 +1,14 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
-import 'dart:io' show Platform;
-
 import 'package:uuid/uuid.dart';
 
 import '../google_maps_location_picker.dart';
@@ -26,36 +26,30 @@ typedef SearchingWidgetBuilder = Widget Function(
   BuildContext context,
 );
 
-typedef SearchDecorator = InputDecoration Function(
-  VoidCallback onClear,
-  bool hasText,
+typedef SearchFieldBuilder = Widget Function(
+  BuildContext context,
+  TextEditingController controller,
+  FocusNode focus,
 );
 
 enum PinState { Preparing, Idle, Dragging }
 
 enum SearchingState { Idle, Searching }
 
-class LocationPicker extends StatefulWidget {
-  LocationPicker({
+class LocationPickerViewer extends StatefulWidget {
+  LocationPickerViewer({
     Key? key,
     required this.apiKey,
-    required this.onPlacePicked,
     required this.initialPosition,
     this.initialZoomLevel = 15,
     this.useCurrentLocation,
     this.desiredLocationAccuracy = LocationAccuracy.high,
-    this.onMapCreated,
     this.hintText,
     this.searchingText,
     this.selectText,
     this.outsideOfPickAreaText,
     this.onAutoCompleteFailed,
     this.onGeocodingSearchFailed,
-    this.proxyBaseUrl,
-    this.httpClient,
-    this.selectedPlaceWidgetBuilder,
-    this.pinBuilder,
-    this.introModalWidgetBuilder,
     this.autoCompleteDebounceInMilliseconds = 500,
     this.cameraMoveDebounceInMilliseconds = 750,
     this.initialMapType = MapType.normal,
@@ -67,13 +61,18 @@ class LocationPicker extends StatefulWidget {
     this.autocompleteOffset,
     this.autocompleteRadius,
     this.autocompleteLanguage,
-    this.autocompleteComponents,
     this.autocompleteTypes,
+    this.autocompleteComponents,
     this.strictBounds,
     this.region,
     this.pickArea,
-    this.selectInitialPosition = false,
     this.resizeToAvoidBottomInset = true,
+    this.selectInitialPosition = false,
+    required this.selectedPlaceWidgetBuilder,
+    this.pinBuilder,
+    this.introModalWidgetBuilder,
+    this.proxyBaseUrl,
+    this.httpClient,
     this.initialSearchString,
     this.searchForInitialValue = false,
     this.forceSearchOnZoomChanged = false,
@@ -82,6 +81,7 @@ class LocationPicker extends StatefulWidget {
     this.hidePlaceDetailsWhenDraggingPin = true,
     this.ignoreLocationPermissionErrors = false,
     this.onTapBack,
+    this.onMapCreated,
     this.onCameraMoveStarted,
     this.onCameraMove,
     this.onCameraIdle,
@@ -90,7 +90,8 @@ class LocationPicker extends StatefulWidget {
     this.zoomControlsEnabled = false,
     this.polygons = const <Polygon>{},
     this.searchingWidgetBuilder,
-    this.searchDecorator,
+    required this.searchFieldBuilder,
+    required this.allowPicking,
   }) : super(key: key);
 
   final String apiKey;
@@ -143,17 +144,9 @@ class LocationPicker extends StatefulWidget {
 
   final bool selectInitialPosition;
 
-  /// By using default setting of Place Picker, it will result result when user hits the select here button.
+  /// Required - builds selected place's UI
   ///
-  /// If you managed to use your own [selectedPlaceWidgetBuilder], then this WILL NOT be invoked, and you need use data which is
-  /// being sent with [selectedPlaceWidgetBuilder].
-  final ValueChanged<PickResult> onPlacePicked;
-
-  /// optional - builds selected place's UI
-  ///
-  /// It is provided by default if you leave it as a null.
-  /// IMPORTANT: If this is non-null, [onPlacePicked] will not be invoked, as there will be no default 'Select here' button.
-  final SelectedPlaceWidgetBuilder? selectedPlaceWidgetBuilder;
+  final SelectedPlaceWidgetBuilder selectedPlaceWidgetBuilder;
 
   /// optional - builds customized pin widget which indicates current pointing position.
   ///
@@ -257,14 +250,17 @@ class LocationPicker extends StatefulWidget {
   /// It is provided by default if you leave it as a null.
   final SearchingWidgetBuilder? searchingWidgetBuilder;
 
-  /// optional - search textfield input decorator
+  /// search textfield builder
   ///
-  final SearchDecorator? searchDecorator;
+  final SearchFieldBuilder searchFieldBuilder;
+
+  final bool allowPicking;
+
   @override
   _PlacePickerState createState() => _PlacePickerState();
 }
 
-class _PlacePickerState extends State<LocationPicker> {
+class _PlacePickerState extends State<LocationPickerViewer> {
   GlobalKey appBarKey = GlobalKey();
   late final Future<PlaceProvider> _futureProvider;
   PlaceProvider? provider;
@@ -306,7 +302,10 @@ class _PlacePickerState extends State<LocationPicker> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        onPopInvokedWithResult: (_, __) => searchBarController.clearOverlay(),
+        onPopInvokedWithResult: (willPOP, __) {
+          if (willPOP) return;
+          searchBarController.clearOverlay();
+        },
         child: FutureBuilder<PlaceProvider>(
           future: _futureProvider,
           builder: (context, snapshot) {
@@ -392,38 +391,39 @@ class _PlacePickerState extends State<LocationPicker> {
                 ),
                 color: Colors.black.withAlpha(128),
                 padding: EdgeInsets.zero)
-            : Container(),
-        Expanded(
-          child: AutoCompleteSearch(
-            appBarKey: appBarKey,
-            searchBarController: searchBarController,
-            searchDecorator: widget.searchDecorator,
-            searchingWidgetBuilder: widget.searchingWidgetBuilder,
-            sessionToken: provider!.sessionToken,
-            debounceMilliseconds: widget.autoCompleteDebounceInMilliseconds,
-            onPicked: (prediction) {
-              if (mounted) {
-                _pickPrediction(prediction);
-              }
-            },
-            onSearchFailed: (status) {
-              if (widget.onAutoCompleteFailed != null) {
-                widget.onAutoCompleteFailed!(status);
-              }
-            },
-            autocompleteOffset: widget.autocompleteOffset,
-            autocompleteRadius: widget.autocompleteRadius,
-            autocompleteLanguage: widget.autocompleteLanguage,
-            autocompleteComponents: widget.autocompleteComponents,
-            autocompleteTypes: widget.autocompleteTypes,
-            strictBounds: widget.strictBounds,
-            region: widget.region,
-            initialSearchString: widget.initialSearchString,
-            searchForInitialValue: widget.searchForInitialValue,
-            autocompleteOnTrailingWhitespace:
-                widget.autocompleteOnTrailingWhitespace,
+            : SizedBox.shrink(),
+        if (widget.allowPicking)
+          Expanded(
+            child: AutoCompleteSearch(
+              appBarKey: appBarKey,
+              searchBarController: searchBarController,
+              searchFieldBuilder: widget.searchFieldBuilder,
+              searchingWidgetBuilder: widget.searchingWidgetBuilder,
+              sessionToken: provider!.sessionToken,
+              debounceMilliseconds: widget.autoCompleteDebounceInMilliseconds,
+              onPicked: (prediction) {
+                if (mounted) {
+                  _pickPrediction(prediction);
+                }
+              },
+              onSearchFailed: (status) {
+                if (widget.onAutoCompleteFailed != null) {
+                  widget.onAutoCompleteFailed!(status);
+                }
+              },
+              autocompleteOffset: widget.autocompleteOffset,
+              autocompleteRadius: widget.autocompleteRadius,
+              autocompleteLanguage: widget.autocompleteLanguage,
+              autocompleteComponents: widget.autocompleteComponents,
+              autocompleteTypes: widget.autocompleteTypes,
+              strictBounds: widget.strictBounds,
+              region: widget.region,
+              initialSearchString: widget.initialSearchString,
+              searchForInitialValue: widget.searchForInitialValue,
+              autocompleteOnTrailingWhitespace:
+                  widget.autocompleteOnTrailingWhitespace,
+            ),
           ),
-        ),
         SizedBox(width: 5),
       ],
     );
@@ -528,16 +528,14 @@ class _PlacePickerState extends State<LocationPicker> {
           await _moveToCurrentPosition();
         }
       },
-      onMoveStart: () {
-        if (provider == null) return;
-      },
-      onPlacePicked: widget.onPlacePicked,
+      onMoveStart: () {},
       onCameraMoveStarted: widget.onCameraMoveStarted,
       onCameraMove: widget.onCameraMove,
       onCameraIdle: widget.onCameraIdle,
       zoomGesturesEnabled: widget.zoomGesturesEnabled,
       zoomControlsEnabled: widget.zoomControlsEnabled,
       polygons: widget.polygons,
+      allowPicking: widget.allowPicking,
     );
   }
 
@@ -568,7 +566,7 @@ class _PlacePickerState extends State<LocationPicker> {
                   }
                 })
               ])
-            : Container();
+            : SizedBox.shrink();
       },
     );
   }

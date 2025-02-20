@@ -31,7 +31,7 @@ class AutoCompleteSearch extends StatefulWidget {
     this.searchForInitialValue,
     this.autocompleteOnTrailingWhitespace,
     this.searchingWidgetBuilder,
-    this.searchDecorator,
+    required this.searchFieldBuilder,
   }) : super(key: key);
 
   final String? sessionToken;
@@ -52,7 +52,7 @@ class AutoCompleteSearch extends StatefulWidget {
   final bool? searchForInitialValue;
   final bool? autocompleteOnTrailingWhitespace;
   final SearchingWidgetBuilder? searchingWidgetBuilder;
-  final SearchDecorator? searchDecorator;
+  final SearchFieldBuilder searchFieldBuilder;
   @override
   AutoCompleteSearchState createState() => AutoCompleteSearchState();
 }
@@ -97,7 +97,7 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
   void _updateAddress() {
     final placeProvider = PlaceProvider.of(context, listen: false);
     if (placeProvider.isSearchBarFocused) return;
-    final formattedAddress = placeProvider.selectedPlace?.formattedAddress;
+    final formattedAddress = placeProvider.selectedPlace?.shortenedAddress;
     if (formattedAddress != null) controller.text = formattedAddress;
   }
 
@@ -121,13 +121,10 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
             child: ValueListenableBuilder(
                 valueListenable: controller,
                 builder: (context, value, _) {
-                  return TextField(
-                    controller: controller,
-                    focusNode: focus,
-                    decoration: widget.searchDecorator?.call(
-                      clearText,
-                      value.text.isNotEmpty,
-                    ),
+                  return widget.searchFieldBuilder(
+                    context,
+                    controller,
+                    focus,
                   );
                 }),
           )

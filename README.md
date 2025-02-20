@@ -293,7 +293,7 @@ LocationPicker(apiKey: APIKeys.apiKey,
             ...
             selectedPlaceWidgetBuilder: (_, selectedPlace, state, isSearchBarFocused) {
               return isSearchBarFocused
-                  ? Container()
+                  ? SizedBox.shrink()
                   // Use FloatingCard or just create your own Widget.
                   : FloatingCard(
                       bottomPosition: 0.0,    // MediaQuery.of(context) will cause rebuild. See MediaQuery document for the information.

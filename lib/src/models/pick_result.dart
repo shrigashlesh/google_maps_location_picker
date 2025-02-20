@@ -89,3 +89,39 @@ class PickResult {
     );
   }
 }
+
+extension PickResultX on PickResult {
+  String get shortenedAddress {
+    if (addressComponents == null || addressComponents!.isEmpty) return '';
+
+    List<String> addressParts = [];
+
+    // Collect relevant address components in order of priority
+    for (var component in addressComponents!) {
+      if (component.types.contains('route') || // Street name
+          component.types.contains('sublocality') || // Sub-locality
+          component.types.contains('locality') || // City
+          component.types.contains('administrative_area_level_1')) {
+        // State
+        addressParts.add(component.longName);
+      }
+    }
+
+    if (addressParts.isEmpty) return '';
+
+    // Limit to 3 components + country short name (if available)
+    addressParts = addressParts.take(3).toList();
+
+    // Replace country with its short name if available
+    var countryComponent = addressComponents!.firstWhere(
+      (c) => c.types.contains('country'),
+      orElse: () => AddressComponent(longName: '', shortName: '', types: []),
+    );
+
+    if (countryComponent.shortName.isNotEmpty) {
+      addressParts.add(countryComponent.shortName);
+    }
+
+    return addressParts.join(', ');
+  }
+}
