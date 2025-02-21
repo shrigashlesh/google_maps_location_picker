@@ -96,14 +96,13 @@ class _HomePageState extends State<HomePage> {
                               searchingText: "Please wait ...",
                               selectText: "Select place",
                               outsideOfPickAreaText: "Place not in area",
-                              initialPosition: LatLng(18.956237, 72.830304),
-                              useCurrentLocation: false,
+                              useCurrentLocation: true,
                               selectInitialPosition: true,
                               usePinPointingSearch: true,
                               usePlaceDetailSearch: false,
                               zoomGesturesEnabled: true,
                               zoomControlsEnabled: true,
-                              ignoreLocationPermissionErrors: true,
+                              ignoreLocationPermissionErrors: false,
                               autocompleteOnTrailingWhitespace: true,
                               onMapCreated: (GoogleMapController controller) {
                                 print("Map created");
@@ -119,6 +118,13 @@ class _HomePageState extends State<HomePage> {
                                 return TextField(
                                   controller: controller,
                                   focusNode: focus,
+                                );
+                              },
+                              errorBuilder: (context) {
+                                return Center(
+                                  child: Text(
+                                    "Custom Error widget",
+                                  ),
                                 );
                               },
                               selectedPlaceWidgetBuilder: (BuildContext context,

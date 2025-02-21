@@ -22,10 +22,6 @@ typedef IntroModalWidgetBuilder = Widget Function(
   Function? close,
 );
 
-typedef SearchingWidgetBuilder = Widget Function(
-  BuildContext context,
-);
-
 typedef SearchFieldBuilder = Widget Function(
   BuildContext context,
   TextEditingController controller,
@@ -40,9 +36,9 @@ class LocationPickerViewer extends StatefulWidget {
   LocationPickerViewer({
     Key? key,
     required this.apiKey,
-    required this.initialPosition,
+    this.initialPosition,
     this.initialZoomLevel = 15,
-    this.useCurrentLocation,
+    this.useCurrentLocation = false,
     this.desiredLocationAccuracy = LocationAccuracy.high,
     this.hintText,
     this.searchingText,
@@ -92,13 +88,16 @@ class LocationPickerViewer extends StatefulWidget {
     this.searchingWidgetBuilder,
     required this.searchFieldBuilder,
     required this.allowPicking,
+    this.markers = const <Marker>{},
+    this.errorBuilder,
+    this.floatingBtnsColor,
   }) : super(key: key);
 
   final String apiKey;
 
-  final LatLng initialPosition;
+  final LatLng? initialPosition;
   final double initialZoomLevel;
-  final bool? useCurrentLocation;
+  final bool useCurrentLocation;
   final LocationAccuracy desiredLocationAccuracy;
 
   final String? hintText;
@@ -248,7 +247,7 @@ class LocationPickerViewer extends StatefulWidget {
   /// optional - builds searching UI
   ///
   /// It is provided by default if you leave it as a null.
-  final SearchingWidgetBuilder? searchingWidgetBuilder;
+  final WidgetBuilder? searchingWidgetBuilder;
 
   /// search textfield builder
   ///
@@ -256,6 +255,14 @@ class LocationPickerViewer extends StatefulWidget {
 
   final bool allowPicking;
 
+  /// Markers to be placed on the map.
+  ///
+  /// Defaults to `const <Marker>{}`
+  final Set<Marker> markers;
+
+  final WidgetBuilder? errorBuilder;
+
+  final Color? floatingBtnsColor;
   @override
   _PlacePickerState createState() => _PlacePickerState();
 }
@@ -270,7 +277,10 @@ class _PlacePickerState extends State<LocationPickerViewer> {
   @override
   void initState() {
     super.initState();
-
+    assert(
+      widget.initialPosition != null || widget.useCurrentLocation,
+      'If initialPosition is null, useCurrentLocation must be true.',
+    );
     _futureProvider = _initPlaceProvider();
   }
 
@@ -292,7 +302,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
     provider.sessionToken = Uuid().v4();
     provider.desiredAccuracy = widget.desiredLocationAccuracy;
     provider.setMapType(widget.initialMapType);
-    if (widget.useCurrentLocation != null && widget.useCurrentLocation!) {
+    if (widget.useCurrentLocation) {
       await provider.updateCurrentLocation(
           gracefully: widget.ignoreLocationPermissionErrors);
     }
@@ -302,72 +312,72 @@ class _PlacePickerState extends State<LocationPickerViewer> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        onPopInvokedWithResult: (willPOP, __) {
-          if (willPOP) return;
-          searchBarController.clearOverlay();
-        },
-        child: FutureBuilder<PlaceProvider>(
-          future: _futureProvider,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasData) {
-              provider = snapshot.data;
-              return MultiProvider(
-                providers: [
-                  ChangeNotifierProvider<PlaceProvider>.value(value: provider!),
-                ],
-                child: Stack(children: [
-                  Scaffold(
-                    key: ValueKey<int>(provider.hashCode),
-                    resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
-                    extendBodyBehindAppBar: true,
-                    appBar: AppBar(
-                      key: appBarKey,
-                      automaticallyImplyLeading: false,
-                      iconTheme: Theme.of(context).iconTheme,
-                      elevation: 0,
-                      backgroundColor: Colors.transparent,
-                      titleSpacing: 0.0,
-                      title: _buildSearchBar(context),
-                    ),
-                    body: _buildMapWithLocation(),
+      onPopInvokedWithResult: (willPOP, __) {
+        if (willPOP) return;
+        searchBarController.clearOverlay();
+      },
+      child: FutureBuilder<PlaceProvider>(
+        future: _futureProvider,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasData) {
+            provider = snapshot.data;
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider<PlaceProvider>.value(value: provider!),
+              ],
+              child: Stack(children: [
+                Scaffold(
+                  key: ValueKey<int>(provider.hashCode),
+                  resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
+                  extendBodyBehindAppBar: true,
+                  appBar: AppBar(
+                    key: appBarKey,
+                    automaticallyImplyLeading: false,
+                    iconTheme: Theme.of(context).iconTheme,
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    titleSpacing: 0.0,
+                    title: _buildSearchBar(context),
                   ),
-                  _buildIntroModal(context),
-                ]),
-              );
-            }
-
-            final children = <Widget>[];
-            if (snapshot.hasError) {
-              children.addAll([
-                Icon(
-                  Icons.error_outline,
-                  color: Theme.of(context).colorScheme.error,
+                  body: _buildMapWithLocation(),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text('Error: ${snapshot.error}'),
-                )
-              ]);
-            } else {
-              children.add(CircularProgressIndicator());
-            }
-
-            return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: children,
-                ),
-              ),
+                _buildIntroModal(context),
+              ]),
             );
-          },
-        ));
+          }
+
+          if (snapshot.hasError) {
+            return widget.errorBuilder == null
+                ? Scaffold(
+                    body: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Text('Error: ${snapshot.error}'),
+                      )
+                    ],
+                  ))
+                : widget.errorBuilder!(context);
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
+    );
   }
 
   Widget _buildSearchBar(BuildContext context) {
+    if (provider!.currentPosition == null && widget.initialPosition == null) {
+      return SizedBox.shrink();
+    }
     return Row(
       children: <Widget>[
         SizedBox(width: 15),
@@ -480,10 +490,17 @@ class _PlacePickerState extends State<LocationPickerViewer> {
 
   Widget _buildMapWithLocation() {
     if (provider!.currentPosition == null) {
-      return _buildMap(widget.initialPosition);
+      if (widget.initialPosition != null)
+        return _buildMap(widget.initialPosition!);
+    } else {
+      return _buildMap(LatLng(provider!.currentPosition!.latitude,
+          provider!.currentPosition!.longitude));
     }
-    return _buildMap(LatLng(provider!.currentPosition!.latitude,
-        provider!.currentPosition!.longitude));
+    return widget.errorBuilder == null
+        ? Center(
+            child: Text("No location specified"),
+          )
+        : widget.errorBuilder!(context);
   }
 
   Widget _buildMap(LatLng initialTarget) {
@@ -508,6 +525,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
       hidePlaceDetailsWhenDraggingPin: widget.hidePlaceDetailsWhenDraggingPin,
       selectText: widget.selectText,
       outsideOfPickAreaText: widget.outsideOfPickAreaText,
+      floatingBtnsColor: widget.floatingBtnsColor,
       onToggleMapType: () {
         if (provider == null) return;
         provider!.switchMapType();
@@ -523,8 +541,11 @@ class _PlacePickerState extends State<LocationPickerViewer> {
           Timer(Duration(seconds: widget.myLocationButtonCooldown), () {
             provider!.isOnUpdateLocationCooldown = false;
           });
+
           await provider!.updateCurrentLocation(
-              gracefully: widget.ignoreLocationPermissionErrors);
+            gracefully: widget.ignoreLocationPermissionErrors,
+          );
+
           await _moveToCurrentPosition();
         }
       },
@@ -536,6 +557,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
       zoomControlsEnabled: widget.zoomControlsEnabled,
       polygons: widget.polygons,
       allowPicking: widget.allowPicking,
+      markers: widget.markers,
     );
   }
 

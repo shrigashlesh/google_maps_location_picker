@@ -51,7 +51,7 @@ class AutoCompleteSearch extends StatefulWidget {
   final String? initialSearchString;
   final bool? searchForInitialValue;
   final bool? autocompleteOnTrailingWhitespace;
-  final SearchingWidgetBuilder? searchingWidgetBuilder;
+  final WidgetBuilder? searchingWidgetBuilder;
   final SearchFieldBuilder searchFieldBuilder;
   @override
   AutoCompleteSearchState createState() => AutoCompleteSearchState();

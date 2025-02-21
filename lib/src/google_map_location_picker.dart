@@ -13,7 +13,6 @@ import 'package:tuple/tuple.dart';
 
 import '../google_maps_location_picker.dart';
 import '../providers/place_provider.dart';
-import 'components/animated_pin.dart';
 
 typedef SelectedPlaceWidgetBuilder = Widget Function(
   BuildContext context,
@@ -60,6 +59,8 @@ class GoogleMapLocationPicker extends StatelessWidget {
     this.fullMotion = false,
     required this.polygons,
     required this.allowPicking,
+    required this.markers,
+    this.floatingBtnsColor,
   }) : super(key: key);
 
   final LatLng initialTarget;
@@ -107,8 +108,11 @@ class GoogleMapLocationPicker extends StatelessWidget {
   final bool fullMotion;
 
   final Set<Polygon> polygons;
+  final Set<Marker> markers;
 
   final bool allowPicking;
+
+  final Color? floatingBtnsColor;
 
   _searchByCameraLocation(PlaceProvider provider) async {
     // We don't want to search location again if camera location is changed by zooming in/out.
@@ -286,6 +290,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
           ),
         ),
       polygons: polygons,
+      markers: !allowPicking ? markers : <Marker>{},
     );
   }
 
@@ -487,9 +492,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
                   height: 35,
                   child: RawMaterialButton(
                     shape: CircleBorder(),
-                    fillColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black54
-                        : Colors.white,
+                    fillColor: floatingBtnsColor,
                     elevation: 4.0,
                     onPressed: onToggleMapType,
                     child: Icon(Icons.layers),
@@ -503,9 +506,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
                   height: 35,
                   child: RawMaterialButton(
                     shape: CircleBorder(),
-                    fillColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black54
-                        : Colors.white,
+                    fillColor: floatingBtnsColor,
                     elevation: 4.0,
                     onPressed: onMyLocation,
                     child: Icon(Icons.my_location),
