@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_location_picker/google_maps_location_picker.dart';
+import 'package:google_maps_location_picker_demo/test_map.dart';
 
 // Your api key storage.
 import 'keys.dart';
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.light,
-      home: HomePage(),
+      home: PersonalMapPage(),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -80,7 +81,7 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(
                           builder: (context) {
                             return LocationPickerViewer(
-                              allowPicking: true,
+                              allowSearching: true,
                               resizeToAvoidBottomInset: false,
                               // only works in page mode, less flickery
                               apiKey: Platform.isAndroid
@@ -276,7 +277,7 @@ class _HomePageState extends State<HomePage> {
                     width: MediaQuery.of(context).size.width * 0.75,
                     height: MediaQuery.of(context).size.height * 0.35,
                     child: LocationPickerViewer(
-                        allowPicking: true,
+                        allowSearching: true,
                         selectedPlaceWidgetBuilder: (BuildContext context,
                             PickResult? selectedPlace,
                             SearchingState state,

@@ -87,7 +87,7 @@ class LocationPickerViewer extends StatefulWidget {
     this.polygons = const <Polygon>{},
     this.searchingWidgetBuilder,
     required this.searchFieldBuilder,
-    required this.allowPicking,
+    required this.allowSearching,
     this.markers = const <Marker>{},
     this.errorBuilder,
     this.floatingBtnsColor,
@@ -253,7 +253,7 @@ class LocationPickerViewer extends StatefulWidget {
   ///
   final SearchFieldBuilder searchFieldBuilder;
 
-  final bool allowPicking;
+  final bool allowSearching;
 
   /// Markers to be placed on the map.
   ///
@@ -402,7 +402,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
                 color: Colors.black.withAlpha(128),
                 padding: EdgeInsets.zero)
             : SizedBox.shrink(),
-        if (widget.allowPicking)
+        if (widget.allowSearching)
           Expanded(
             child: AutoCompleteSearch(
               appBarKey: appBarKey,
@@ -556,7 +556,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
       zoomGesturesEnabled: widget.zoomGesturesEnabled,
       zoomControlsEnabled: widget.zoomControlsEnabled,
       polygons: widget.polygons,
-      allowPicking: widget.allowPicking,
+      allowSearching: widget.allowSearching,
       markers: widget.markers,
     );
   }

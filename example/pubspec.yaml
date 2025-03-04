@@ -29,6 +29,7 @@ dependencies:
 
   google_maps_location_picker:
     path: ../
+  the_widget_marker: ^1.0.0
 
 dev_dependencies:
   flutter_test:

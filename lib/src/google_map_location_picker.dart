@@ -58,7 +58,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
     this.zoomControlsEnabled = false,
     this.fullMotion = false,
     required this.polygons,
-    required this.allowPicking,
+    required this.allowSearching,
     required this.markers,
     this.floatingBtnsColor,
   }) : super(key: key);
@@ -110,7 +110,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
   final Set<Polygon> polygons;
   final Set<Marker> markers;
 
-  final bool allowPicking;
+  final bool allowSearching;
 
   final Color? floatingBtnsColor;
 
@@ -194,12 +194,12 @@ class GoogleMapLocationPicker extends StatelessWidget {
                     alignment: AlignmentDirectional.center,
                     children: [
                       _buildGoogleMap(context),
-                      if (allowPicking) _buildPin(),
+                      if (allowSearching) _buildPin(),
                     ],
                   ))),
         if (!this.fullMotion) ...[
           _buildGoogleMap(context),
-          if (allowPicking) _buildPin()
+          if (usePinPointingSearch ?? false) _buildPin()
         ],
         _buildFloatingCard(),
         _buildMapIcons(context),
@@ -240,7 +240,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
       },
       onCameraIdle: () {
         onCameraIdle?.call(provider);
-        if (!allowPicking) return;
+        if (!allowSearching) return;
         if (provider.isAutoCompleteSearching) {
           provider.isAutoCompleteSearching = false;
           provider.pinState = PinState.Idle;
@@ -265,7 +265,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
       },
       onCameraMoveStarted: () {
         onCameraMoveStarted?.call(provider);
-        if (!allowPicking) return;
+        if (!allowSearching) return;
         provider.setPrevCameraPosition(provider.cameraPosition);
         // Cancel any other timer.
         provider.debounceTimer?.cancel();
@@ -290,7 +290,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
           ),
         ),
       polygons: polygons,
-      markers: !allowPicking ? markers : <Marker>{},
+      markers: markers,
     );
   }
 
