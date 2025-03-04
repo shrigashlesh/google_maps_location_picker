@@ -91,6 +91,7 @@ class LocationPickerViewer extends StatefulWidget {
     this.markers = const <Marker>{},
     this.errorBuilder,
     this.floatingBtnsColor,
+    this.onTap,
   }) : super(key: key);
 
   final String apiKey;
@@ -263,6 +264,8 @@ class LocationPickerViewer extends StatefulWidget {
   final WidgetBuilder? errorBuilder;
 
   final Color? floatingBtnsColor;
+
+  final ArgumentCallback<LatLng>? onTap;
   @override
   _PlacePickerState createState() => _PlacePickerState();
 }
@@ -407,6 +410,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
             child: AutoCompleteSearch(
               appBarKey: appBarKey,
               searchBarController: searchBarController,
+              usePinPointingSearch: widget.usePinPointingSearch,
               searchFieldBuilder: widget.searchFieldBuilder,
               searchingWidgetBuilder: widget.searchingWidgetBuilder,
               sessionToken: provider!.sessionToken,
@@ -558,6 +562,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
       polygons: widget.polygons,
       allowSearching: widget.allowSearching,
       markers: widget.markers,
+      onTap: widget.onTap,
     );
   }
 

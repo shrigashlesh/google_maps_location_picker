@@ -61,6 +61,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
     required this.allowSearching,
     required this.markers,
     this.floatingBtnsColor,
+    this.onTap,
   }) : super(key: key);
 
   final LatLng initialTarget;
@@ -75,6 +76,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
   final MapCreatedCallback? onMapCreated;
   final VoidCallback? onToggleMapType;
   final VoidCallback? onMyLocation;
+  final ArgumentCallback<LatLng>? onTap;
 
   final int? debounceMilliseconds;
   final bool? enableMapTypeButton;
@@ -214,6 +216,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
       zoom: this.initialZoomLevel,
     );
     return GoogleMap(
+      onTap: onTap,
       zoomGesturesEnabled: this.zoomGesturesEnabled,
       zoomControlsEnabled: false,
       // we use our own implementation that supports iOS as well, see _buildZoomButtons()

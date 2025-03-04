@@ -32,6 +32,7 @@ class AutoCompleteSearch extends StatefulWidget {
     this.autocompleteOnTrailingWhitespace,
     this.searchingWidgetBuilder,
     required this.searchFieldBuilder,
+    this.usePinPointingSearch,
   }) : super(key: key);
 
   final String? sessionToken;
@@ -53,6 +54,8 @@ class AutoCompleteSearch extends StatefulWidget {
   final bool? autocompleteOnTrailingWhitespace;
   final WidgetBuilder? searchingWidgetBuilder;
   final SearchFieldBuilder searchFieldBuilder;
+  final bool? usePinPointingSearch;
+
   @override
   AutoCompleteSearchState createState() => AutoCompleteSearchState();
 }
@@ -95,6 +98,9 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
 
 // Define a function to update the address
   void _updateAddress() {
+    if (!(widget.usePinPointingSearch ?? false) &&
+        controller.text.trim().isEmpty) return;
+
     final placeProvider = PlaceProvider.of(context, listen: false);
     if (placeProvider.isSearchBarFocused) return;
     final formattedAddress = placeProvider.selectedPlace?.shortenedAddress;
