@@ -85,7 +85,11 @@ class _PersonalMapPageState extends State<PersonalMapPage> {
         );
       },
       searchedOverlayDecoration: BoxDecoration(
-          color: Colors.red, borderRadius: BorderRadius.circular(4)),
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(
+          12,
+        ),
+      ),
     );
   }
 }

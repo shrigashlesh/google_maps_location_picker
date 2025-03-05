@@ -216,10 +216,18 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
             appBarRenderBox.size.height,
         left: screenWidth * 0.025,
         right: screenWidth * 0.025,
-        child: Material(
-          child: DecoratedBox(
-            decoration: widget.searchedOverlayDecoration ?? BoxDecoration(),
-            child: overlayChild,
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            shadowColor: Colors.transparent,
+            child: DecoratedBox(
+              decoration: widget.searchedOverlayDecoration ?? BoxDecoration(),
+              child: overlayChild,
+            ),
           ),
         ),
       ),
