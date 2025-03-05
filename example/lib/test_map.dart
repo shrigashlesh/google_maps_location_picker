@@ -73,12 +73,19 @@ class _PersonalMapPageState extends State<PersonalMapPage> {
       pinBuilder: (context, pinState) {
         return const SizedBox.shrink();
       },
+      predictionTileTheme: PredictionTileTheme(
+        leading: Icon(Icons.abc_outlined),
+        matchedStyle: TextStyle(color: Colors.green),
+        regularStyle: TextStyle(),
+      ),
       searchFieldBuilder: (context, controller, focus) {
         return TextField(
           controller: controller,
           focusNode: focus,
         );
       },
+      searchedOverlayDecoration: BoxDecoration(
+          color: Colors.red, borderRadius: BorderRadius.circular(4)),
     );
   }
 }

@@ -32,6 +32,18 @@ enum PinState { Preparing, Idle, Dragging }
 
 enum SearchingState { Idle, Searching }
 
+class PredictionTileTheme {
+  final TextStyle? matchedStyle;
+  final TextStyle? regularStyle;
+  final Widget? leading;
+
+  PredictionTileTheme({
+    this.matchedStyle,
+    this.regularStyle,
+    this.leading,
+  });
+}
+
 class LocationPickerViewer extends StatefulWidget {
   LocationPickerViewer({
     Key? key,
@@ -92,6 +104,9 @@ class LocationPickerViewer extends StatefulWidget {
     this.errorBuilder,
     this.floatingBtnsColor,
     this.onTap,
+    this.style,
+    this.searchedOverlayDecoration,
+    this.predictionTileTheme,
   }) : super(key: key);
 
   final String apiKey;
@@ -261,11 +276,16 @@ class LocationPickerViewer extends StatefulWidget {
   /// Defaults to `const <Marker>{}`
   final Set<Marker> markers;
 
+  final String? style;
   final WidgetBuilder? errorBuilder;
 
   final Color? floatingBtnsColor;
 
   final ArgumentCallback<LatLng>? onTap;
+
+  final Decoration? searchedOverlayDecoration;
+
+  final PredictionTileTheme? predictionTileTheme;
   @override
   _PlacePickerState createState() => _PlacePickerState();
 }
@@ -402,13 +422,13 @@ class _PlacePickerState extends State<LocationPickerViewer> {
                 icon: Icon(
                   Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back,
                 ),
-                color: Colors.black.withAlpha(128),
                 padding: EdgeInsets.zero)
             : SizedBox.shrink(),
         if (widget.allowSearching)
           Expanded(
             child: AutoCompleteSearch(
               appBarKey: appBarKey,
+              searchedOverlayDecoration: widget.searchedOverlayDecoration,
               searchBarController: searchBarController,
               usePinPointingSearch: widget.usePinPointingSearch,
               searchFieldBuilder: widget.searchFieldBuilder,
@@ -436,9 +456,10 @@ class _PlacePickerState extends State<LocationPickerViewer> {
               searchForInitialValue: widget.searchForInitialValue,
               autocompleteOnTrailingWhitespace:
                   widget.autocompleteOnTrailingWhitespace,
+              predictionTileTheme: widget.predictionTileTheme,
             ),
           ),
-        SizedBox(width: 5),
+        SizedBox(width: 15),
       ],
     );
   }
@@ -511,6 +532,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
     return GoogleMapLocationPicker(
       fullMotion: !widget.resizeToAvoidBottomInset,
       initialTarget: initialTarget,
+      style: widget.style,
       initialZoomLevel: widget.initialZoomLevel,
       appBarKey: appBarKey,
       selectedPlaceWidgetBuilder: widget.selectedPlaceWidgetBuilder,

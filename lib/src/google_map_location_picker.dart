@@ -62,6 +62,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
     required this.markers,
     this.floatingBtnsColor,
     this.onTap,
+    this.style,
   }) : super(key: key);
 
   final LatLng initialTarget;
@@ -111,6 +112,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
 
   final Set<Polygon> polygons;
   final Set<Marker> markers;
+  final String? style;
 
   final bool allowSearching;
 
@@ -219,6 +221,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
       onTap: onTap,
       zoomGesturesEnabled: this.zoomGesturesEnabled,
       zoomControlsEnabled: false,
+      style: style,
       // we use our own implementation that supports iOS as well, see _buildZoomButtons()
       myLocationButtonEnabled: false,
       compassEnabled: false,
@@ -485,7 +488,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
     final RenderBox appBarRenderBox =
         appBarKey.currentContext!.findRenderObject() as RenderBox;
     return Positioned(
-      top: appBarRenderBox.size.height,
+      top: appBarRenderBox.size.height + 10,
       right: 15,
       child: Column(
         children: <Widget>[

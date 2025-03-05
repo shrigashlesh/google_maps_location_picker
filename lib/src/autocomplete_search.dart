@@ -33,6 +33,8 @@ class AutoCompleteSearch extends StatefulWidget {
     this.searchingWidgetBuilder,
     required this.searchFieldBuilder,
     this.usePinPointingSearch,
+    this.searchedOverlayDecoration,
+    this.predictionTileTheme,
   }) : super(key: key);
 
   final String? sessionToken;
@@ -55,7 +57,8 @@ class AutoCompleteSearch extends StatefulWidget {
   final WidgetBuilder? searchingWidgetBuilder;
   final SearchFieldBuilder searchFieldBuilder;
   final bool? usePinPointingSearch;
-
+  final Decoration? searchedOverlayDecoration;
+  final PredictionTileTheme? predictionTileTheme;
   @override
   AutoCompleteSearchState createState() => AutoCompleteSearchState();
 }
@@ -214,8 +217,10 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
         left: screenWidth * 0.025,
         right: screenWidth * 0.025,
         child: Material(
-          elevation: 4.0,
-          child: overlayChild,
+          child: DecoratedBox(
+            decoration: widget.searchedOverlayDecoration ?? BoxDecoration(),
+            child: overlayChild,
+          ),
         ),
       ),
     );
@@ -253,6 +258,7 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
           .map(
             (p) => PredictionTile(
               prediction: p,
+              predictionTileTheme: widget.predictionTileTheme,
               onTap: (selectedPrediction) {
                 resetSearchBar();
                 widget.onPicked(selectedPrediction);
