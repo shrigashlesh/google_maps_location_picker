@@ -28,6 +28,12 @@ typedef SearchFieldBuilder = Widget Function(
   FocusNode focus,
 );
 
+typedef MapActionsBuilder = Widget Function(
+  BuildContext context,
+  PlaceProvider? provider,
+  VoidCallback? moveToCurrentLocation,
+);
+
 enum PinState { Preparing, Idle, Dragging }
 
 enum SearchingState { Idle, Searching }
@@ -61,8 +67,7 @@ class LocationPickerViewer extends StatefulWidget {
     this.autoCompleteDebounceInMilliseconds = 500,
     this.cameraMoveDebounceInMilliseconds = 750,
     this.initialMapType = MapType.normal,
-    this.enableMapTypeButton = true,
-    this.enableMyLocationButton = true,
+    this.allowedMapType = MapType.values,
     this.myLocationButtonCooldown = 10,
     this.usePinPointingSearch = true,
     this.usePlaceDetailSearch = false,
@@ -93,20 +98,21 @@ class LocationPickerViewer extends StatefulWidget {
     this.onCameraMoveStarted,
     this.onCameraMove,
     this.onCameraIdle,
-    this.onMapTypeChanged,
     this.zoomGesturesEnabled = true,
     this.zoomControlsEnabled = false,
-    this.polygons = const <Polygon>{},
     this.searchingWidgetBuilder,
     required this.searchFieldBuilder,
     required this.allowSearching,
+    this.polygons = const <Polygon>{},
     this.markers = const <Marker>{},
+    this.clusterManagers = const <ClusterManager>{},
     this.errorBuilder,
-    this.floatingBtnsColor,
     this.onTap,
     this.style,
     this.searchedOverlayDecoration,
     this.predictionTileTheme,
+    this.mapActionsBuilder,
+    this.floatingBtnsColor,
   }) : super(key: key);
 
   final String apiKey;
@@ -127,10 +133,10 @@ class LocationPickerViewer extends StatefulWidget {
   final int cameraMoveDebounceInMilliseconds;
 
   final MapType initialMapType;
-  final bool enableMapTypeButton;
-  final bool enableMyLocationButton;
+  final List<MapType> allowedMapType;
   final int myLocationButtonCooldown;
 
+  final bool allowSearching;
   final bool usePinPointingSearch;
   final bool usePlaceDetailSearch;
 
@@ -246,9 +252,6 @@ class LocationPickerViewer extends StatefulWidget {
   /// animations and the user has stopped interacting with the map.
   final Function(PlaceProvider)? onCameraIdle;
 
-  /// Called when the map type has been changed.
-  final Function(MapType)? onMapTypeChanged;
-
   /// Toggle on & off zoom gestures
   final bool zoomGesturesEnabled;
 
@@ -265,26 +268,28 @@ class LocationPickerViewer extends StatefulWidget {
   /// It is provided by default if you leave it as a null.
   final WidgetBuilder? searchingWidgetBuilder;
 
+  /// optional - builds actions UI
+  ///
+  /// It is provided by default if you leave it as a null.
+  final MapActionsBuilder? mapActionsBuilder;
+
   /// search textfield builder
   ///
   final SearchFieldBuilder searchFieldBuilder;
-
-  final bool allowSearching;
 
   /// Markers to be placed on the map.
   ///
   /// Defaults to `const <Marker>{}`
   final Set<Marker> markers;
+  final Set<ClusterManager> clusterManagers;
 
   final String? style;
   final WidgetBuilder? errorBuilder;
 
   final Color? floatingBtnsColor;
-
   final ArgumentCallback<LatLng>? onTap;
 
   final Decoration? searchedOverlayDecoration;
-
   final PredictionTileTheme? predictionTileTheme;
   @override
   _PlacePickerState createState() => _PlacePickerState();
@@ -530,17 +535,18 @@ class _PlacePickerState extends State<LocationPickerViewer> {
 
   Widget _buildMap(LatLng initialTarget) {
     return GoogleMapLocationPicker(
+      clusterManagers: widget.clusterManagers,
       fullMotion: !widget.resizeToAvoidBottomInset,
       initialTarget: initialTarget,
       style: widget.style,
+      mapActionsBuilder: widget.mapActionsBuilder,
+      floatingBtnsColor: widget.floatingBtnsColor,
       initialZoomLevel: widget.initialZoomLevel,
       appBarKey: appBarKey,
       selectedPlaceWidgetBuilder: widget.selectedPlaceWidgetBuilder,
       pinBuilder: widget.pinBuilder,
       onSearchFailed: widget.onGeocodingSearchFailed,
       debounceMilliseconds: widget.cameraMoveDebounceInMilliseconds,
-      enableMapTypeButton: widget.enableMapTypeButton,
-      enableMyLocationButton: widget.enableMyLocationButton,
       usePinPointingSearch: widget.usePinPointingSearch,
       usePlaceDetailSearch: widget.usePlaceDetailSearch,
       onMapCreated: widget.onMapCreated,
@@ -551,13 +557,9 @@ class _PlacePickerState extends State<LocationPickerViewer> {
       hidePlaceDetailsWhenDraggingPin: widget.hidePlaceDetailsWhenDraggingPin,
       selectText: widget.selectText,
       outsideOfPickAreaText: widget.outsideOfPickAreaText,
-      floatingBtnsColor: widget.floatingBtnsColor,
-      onToggleMapType: () {
+      onDefaultMapTypeToggle: () {
         if (provider == null) return;
         provider!.switchMapType();
-        if (widget.onMapTypeChanged != null) {
-          widget.onMapTypeChanged!(provider!.mapType);
-        }
       },
       onMyLocation: () async {
         // Prevent to click many times in short period.

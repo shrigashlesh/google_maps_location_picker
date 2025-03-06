@@ -58,13 +58,9 @@ class _PersonalMapPageState extends State<PersonalMapPage> {
         return const SizedBox.shrink();
       },
       initialZoomLevel: 12,
-      onMapTypeChanged: (type) {
-        print(type);
-      },
       useCurrentLocation: true,
       selectInitialPosition: true,
       usePinPointingSearch: false,
-      enableMapTypeButton: true,
       usePlaceDetailSearch: false,
       zoomGesturesEnabled: true,
       automaticallyImplyAppBarLeading: false,

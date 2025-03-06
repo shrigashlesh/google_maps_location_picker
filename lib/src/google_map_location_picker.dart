@@ -38,10 +38,6 @@ class GoogleMapLocationPicker extends StatelessWidget {
     this.onMoveStart,
     this.onMapCreated,
     this.debounceMilliseconds,
-    this.enableMapTypeButton,
-    this.enableMyLocationButton,
-    this.onToggleMapType,
-    this.onMyLocation,
     this.usePinPointingSearch,
     this.usePlaceDetailSearch,
     this.selectInitialPosition,
@@ -60,9 +56,13 @@ class GoogleMapLocationPicker extends StatelessWidget {
     required this.polygons,
     required this.allowSearching,
     required this.markers,
-    this.floatingBtnsColor,
     this.onTap,
     this.style,
+    required this.clusterManagers,
+    required this.onMyLocation,
+    this.mapActionsBuilder,
+    this.floatingBtnsColor,
+    this.onDefaultMapTypeToggle,
   }) : super(key: key);
 
   final LatLng initialTarget;
@@ -71,18 +71,18 @@ class GoogleMapLocationPicker extends StatelessWidget {
 
   final SelectedPlaceWidgetBuilder selectedPlaceWidgetBuilder;
   final PinBuilder? pinBuilder;
+  final MapActionsBuilder? mapActionsBuilder;
 
   final ValueChanged<String>? onSearchFailed;
   final VoidCallback? onMoveStart;
   final MapCreatedCallback? onMapCreated;
-  final VoidCallback? onToggleMapType;
-  final VoidCallback? onMyLocation;
+  final VoidCallback onMyLocation;
+  final VoidCallback? onDefaultMapTypeToggle;
   final ArgumentCallback<LatLng>? onTap;
 
   final int? debounceMilliseconds;
-  final bool? enableMapTypeButton;
-  final bool? enableMyLocationButton;
 
+  final bool allowSearching;
   final bool? usePinPointingSearch;
   final bool? usePlaceDetailSearch;
 
@@ -112,9 +112,9 @@ class GoogleMapLocationPicker extends StatelessWidget {
 
   final Set<Polygon> polygons;
   final Set<Marker> markers;
-  final String? style;
+  final Set<ClusterManager> clusterManagers;
 
-  final bool allowSearching;
+  final String? style;
 
   final Color? floatingBtnsColor;
 
@@ -222,6 +222,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
       zoomGesturesEnabled: this.zoomGesturesEnabled,
       zoomControlsEnabled: false,
       style: style,
+      clusterManagers: clusterManagers,
       // we use our own implementation that supports iOS as well, see _buildZoomButtons()
       myLocationButtonEnabled: false,
       compassEnabled: false,
@@ -488,39 +489,40 @@ class GoogleMapLocationPicker extends StatelessWidget {
     final RenderBox appBarRenderBox =
         appBarKey.currentContext!.findRenderObject() as RenderBox;
     return Positioned(
-      top: appBarRenderBox.size.height + 10,
+      top: appBarRenderBox.size.height + 30,
       right: 15,
-      child: Column(
-        children: <Widget>[
-          enableMapTypeButton!
-              ? Container(
-                  width: 35,
-                  height: 35,
-                  child: RawMaterialButton(
-                    shape: CircleBorder(),
-                    fillColor: floatingBtnsColor,
-                    elevation: 4.0,
-                    onPressed: onToggleMapType,
-                    child: Icon(Icons.layers),
-                  ),
-                )
-              : SizedBox.shrink(),
-          SizedBox(height: 10),
-          enableMyLocationButton!
-              ? Container(
-                  width: 35,
-                  height: 35,
-                  child: RawMaterialButton(
-                    shape: CircleBorder(),
-                    fillColor: floatingBtnsColor,
-                    elevation: 4.0,
-                    onPressed: onMyLocation,
-                    child: Icon(Icons.my_location),
-                  ),
-                )
-              : SizedBox.shrink(),
-        ],
-      ),
+      child: mapActionsBuilder?.call(
+            context,
+            PlaceProvider.of(context, listen: false),
+            onMyLocation,
+          ) ??
+          Column(
+            children: [
+              Container(
+                width: 35,
+                height: 35,
+                child: RawMaterialButton(
+                  shape: CircleBorder(),
+                  fillColor: floatingBtnsColor,
+                  elevation: 4.0,
+                  onPressed: onDefaultMapTypeToggle,
+                  child: Icon(Icons.layers),
+                ),
+              ),
+              SizedBox(height: 10),
+              Container(
+                width: 35,
+                height: 35,
+                child: RawMaterialButton(
+                  shape: CircleBorder(),
+                  fillColor: floatingBtnsColor,
+                  elevation: 4.0,
+                  onPressed: onMyLocation,
+                  child: Icon(Icons.my_location),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }

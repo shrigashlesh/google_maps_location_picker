@@ -108,10 +108,7 @@ class _HomePageState extends State<HomePage> {
                               onMapCreated: (GoogleMapController controller) {
                                 print("Map created");
                               },
-                              onMapTypeChanged: (MapType mapType) {
-                                print(
-                                    "Map type changed to ${mapType.toString()}");
-                              },
+
                               searchingWidgetBuilder: (context) {
                                 return CircularProgressIndicator.adaptive();
                               },
