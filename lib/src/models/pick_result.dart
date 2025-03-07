@@ -92,7 +92,11 @@ class PickResult {
 
 extension PickResultX on PickResult {
   String get shortenedAddress {
-    if (addressComponents == null || addressComponents!.isEmpty) return '';
+    if (addressComponents == null || addressComponents!.isEmpty) {
+      return geometry?.location != null
+          ? '${geometry!.location.lat.toStringAsPrecision(6)}, ${geometry!.location.lng.toStringAsPrecision(6)}'
+          : 'N.A';
+    }
 
     List<String> addressParts = [];
 
@@ -107,7 +111,12 @@ extension PickResultX on PickResult {
       }
     }
 
-    if (addressParts.isEmpty) return '';
+    // If address parts are empty, return lat/lng instead
+    if (addressParts.isEmpty) {
+      return geometry?.location != null
+          ? '${geometry!.location.lat}, ${geometry!.location.lng}'
+          : 'N.A';
+    }
 
     // Limit to 3 components + country short name (if available)
     addressParts = addressParts.take(3).toList();
