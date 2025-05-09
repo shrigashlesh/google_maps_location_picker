@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
@@ -157,6 +158,17 @@ class GoogleMapLocationPicker extends StatelessWidget {
     }
 
     if (usePlaceDetailSearch!) {
+      // log("NEARBY RIVERS FOR: ${response.results.first.geometry.location.toJson()}");
+      // final nearby = await provider.places.searchNearbyWithRankBy(
+      //   response.results.first.geometry.location,
+      //   'distance',
+      //   keyword: 'river',
+      //   type: 'natural_feature',
+      // );
+      // log(
+      //   nearby.results.map((e) => e.name).toString(),
+      // );
+
       final PlacesDetailsResponse detailResponse =
           await provider.places.getDetailsByPlaceId(
         response.results[0].placeId,

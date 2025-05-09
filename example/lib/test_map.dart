@@ -60,15 +60,12 @@ class _PersonalMapPageState extends State<PersonalMapPage> {
       initialZoomLevel: 12,
       useCurrentLocation: true,
       selectInitialPosition: true,
-      usePinPointingSearch: false,
-      usePlaceDetailSearch: false,
+      usePinPointingSearch: true,
+      usePlaceDetailSearch: true,
       zoomGesturesEnabled: true,
       automaticallyImplyAppBarLeading: false,
       ignoreLocationPermissionErrors: true,
       zoomControlsEnabled: false,
-      pinBuilder: (context, pinState) {
-        return const SizedBox.shrink();
-      },
       predictionTileTheme: PredictionTileTheme(
         leading: Icon(Icons.abc_outlined),
         matchedStyle: TextStyle(color: Colors.green),
@@ -81,7 +78,7 @@ class _PersonalMapPageState extends State<PersonalMapPage> {
         );
       },
       searchedOverlayDecoration: BoxDecoration(
-        color: Colors.red,
+        color: Colors.black45,
         borderRadius: BorderRadius.circular(
           12,
         ),

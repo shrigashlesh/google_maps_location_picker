@@ -293,11 +293,13 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
         offset: widget.autocompleteOffset,
         radius: widget.autocompleteRadius,
         language: widget.autocompleteLanguage,
-        types: widget.autocompleteTypes ?? const [],
+        types: widget.autocompleteTypes ?? const ["natural_feature"],
         components: widget.autocompleteComponents ?? const [],
         strictbounds: widget.strictBounds ?? false,
         region: widget.region,
       );
+
+      print(response.predictions);
 
       if (response.errorMessage?.isNotEmpty == true ||
           response.status == "REQUEST_DENIED") {

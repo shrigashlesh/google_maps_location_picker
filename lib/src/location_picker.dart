@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
@@ -486,7 +487,15 @@ class _PlacePickerState extends State<LocationPickerViewer> {
       }
       return;
     }
-
+    // final nearby = await provider!.places.searchNearbyWithRankBy(
+    //   response.result.geometry!.location,
+    //   'distance',
+    //   keyword: 'river',
+    //   type: 'natural_feature',
+    // );
+    // log(
+    //   nearby.results.map((e) => e.name).toString(),
+    // );
     provider!.selectedPlace = PickResult.fromPlaceDetailResult(response.result);
 
     // Prevents searching again by camera movement.

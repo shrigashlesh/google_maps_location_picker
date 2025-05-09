@@ -82,6 +82,7 @@ class _HomePageState extends State<HomePage> {
                           builder: (context) {
                             return LocationPickerViewer(
                               allowSearching: true,
+
                               resizeToAvoidBottomInset: false,
                               // only works in page mode, less flickery
                               apiKey: Platform.isAndroid
