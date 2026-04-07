@@ -178,6 +178,10 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
     provider.isSearchBarFocused = focus.hasFocus;
     provider.debounceTimer?.cancel();
     provider.placeSearchingState = SearchingState.Idle;
+
+    if (!focus.hasFocus) {
+      _clearOverlay();
+    }
   }
 
   _searchPlace(String searchTerm) {
@@ -211,25 +215,39 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: appBarRenderBox!.paintBounds.shift(offset).top +
-            appBarRenderBox.size.height,
-        left: screenWidth * 0.025,
-        right: screenWidth * 0.025,
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-          ),
-          child: Material(
-            color: Colors.transparent,
-            shadowColor: Colors.transparent,
-            child: DecoratedBox(
-              decoration: widget.searchedOverlayDecoration ?? BoxDecoration(),
-              child: overlayChild,
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                resetSearchBar();
+              },
+              behavior: HitTestBehavior.opaque,
+              child: const SizedBox.expand(),
             ),
           ),
-        ),
+          Positioned(
+            top: appBarRenderBox!.paintBounds.shift(offset).top +
+                appBarRenderBox.size.height,
+            left: screenWidth * 0.025,
+            right: screenWidth * 0.025,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+              ),
+              child: Material(
+                color: Colors.transparent,
+                shadowColor: Colors.transparent,
+                child: DecoratedBox(
+                  decoration:
+                      widget.searchedOverlayDecoration ?? BoxDecoration(),
+                  child: overlayChild,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
 

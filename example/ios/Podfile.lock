@@ -50,15 +50,15 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
 
 SPEC CHECKSUMS:
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  geolocator_apple: 9bcea1918ff7f0062d98345d238ae12718acfbc1
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  geolocator_apple: 1560c3c875af2a412242c7a923e15d0d401966ff
   Google-Maps-iOS-Utils: 66d6de12be1ce6d3742a54661e7a79cb317a9321
-  google_maps_flutter_ios: e31555a04d1986ab130f2b9f24b6cdc861acc6d3
+  google_maps_flutter_ios: 0291eb2aa252298a769b04d075e4a9d747ff7264
   GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
-  package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
-  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
-  sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
+  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
+  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
 
-PODFILE CHECKSUM: c4c93c5f6502fe2754f48404d3594bf779584011
+PODFILE CHECKSUM: 0dbd5a87e0ace00c9610d2037ac22083a01f861d
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
