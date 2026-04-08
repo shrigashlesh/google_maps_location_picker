@@ -317,8 +317,6 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
         region: widget.region,
       );
 
-      print(response.predictions);
-
       if (response.errorMessage?.isNotEmpty == true ||
           response.status == "REQUEST_DENIED") {
         if (widget.onSearchFailed != null) {

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
@@ -7,8 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_google_maps_webservices/geocoding.dart';
-import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 
@@ -132,68 +129,27 @@ class GoogleMapLocationPicker extends StatelessWidget {
     }
 
     if (provider.cameraPosition == null) {
-      // Camera position cannot be determined for some reason ...
       provider.placeSearchingState = SearchingState.Idle;
       return;
     }
 
     provider.placeSearchingState = SearchingState.Searching;
 
-    final GeocodingResponse response =
-        await provider.geocoding.searchByLocation(
-      Location(
-          lat: provider.cameraPosition!.target.latitude,
-          lng: provider.cameraPosition!.target.longitude),
-      language: language,
-    );
+    final service = LocationSearchService.fromProvider(provider);
 
-    if (response.errorMessage?.isNotEmpty == true ||
-        response.status == "REQUEST_DENIED") {
-      print("Camera Location Search Error: " + response.errorMessage!);
-      if (onSearchFailed != null) {
-        onSearchFailed!(response.status);
-      }
-      provider.placeSearchingState = SearchingState.Idle;
-      return;
-    }
-
-    if (usePlaceDetailSearch!) {
-      // log("NEARBY RIVERS FOR: ${response.results.first.geometry.location.toJson()}");
-      // final nearby = await provider.places.searchNearbyWithRankBy(
-      //   response.results.first.geometry.location,
-      //   'distance',
-      //   keyword: 'river',
-      //   type: 'natural_feature',
-      // );
-      // log(
-      //   nearby.results.map((e) => e.name).toString(),
-      // );
-
-      final PlacesDetailsResponse detailResponse =
-          await provider.places.getDetailsByPlaceId(
-        response.results[0].placeId,
+    try {
+      provider.selectedPlace = await service.searchByLocation(
+        latitude: provider.cameraPosition!.target.latitude,
+        longitude: provider.cameraPosition!.target.longitude,
         language: language,
+        usePlaceDetailSearch: usePlaceDetailSearch ?? false,
       );
-
-      if (detailResponse.errorMessage?.isNotEmpty == true ||
-          detailResponse.status == "REQUEST_DENIED") {
-        print("Fetching details by placeId Error: " +
-            detailResponse.errorMessage!);
-        if (onSearchFailed != null) {
-          onSearchFailed!(detailResponse.status);
-        }
-        provider.placeSearchingState = SearchingState.Idle;
-        return;
-      }
-
-      provider.selectedPlace =
-          PickResult.fromPlaceDetailResult(detailResponse.result);
-    } else {
-      provider.selectedPlace =
-          PickResult.fromGeocodingResult(response.results[0]);
+    } on LocationSearchException catch (e) {
+      print("Camera Location Search Error: $e");
+      onSearchFailed?.call(e.message);
+    } finally {
+      provider.placeSearchingState = SearchingState.Idle;
     }
-
-    provider.placeSearchingState = SearchingState.Idle;
   }
 
   @override
