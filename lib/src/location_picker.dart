@@ -105,6 +105,7 @@ class LocationPickerViewer extends StatefulWidget {
     required this.allowSearching,
     this.polygons = const <Polygon>{},
     this.markers = const <Marker>{},
+    this.polylines = const <Polyline>{},
     this.clusterManagers = const <ClusterManager>{},
     this.errorBuilder,
     this.onTap,
@@ -263,6 +264,11 @@ class LocationPickerViewer extends StatefulWidget {
   /// Defaults to `const <Polygon>{}`
   final Set<Polygon> polygons;
 
+  /// Polylines to be placed on the map.
+  ///
+  /// Defaults to `const <Polyline>{}`
+  final Set<Polyline> polylines;
+
   /// optional - builds searching UI
   ///
   /// It is provided by default if you leave it as a null.
@@ -281,6 +287,10 @@ class LocationPickerViewer extends StatefulWidget {
   ///
   /// Defaults to `const <Marker>{}`
   final Set<Marker> markers;
+
+  /// Cluster managers to be placed on the map.
+  ///
+  /// Defaults to `const <ClusterManager>{}`
   final Set<ClusterManager> clusterManagers;
 
   final String? style;
@@ -594,6 +604,7 @@ class _PlacePickerState extends State<LocationPickerViewer> {
       polygons: widget.polygons,
       allowSearching: widget.allowSearching,
       markers: widget.markers,
+      polylines: widget.polylines,
       onTap: widget.onTap,
     );
   }

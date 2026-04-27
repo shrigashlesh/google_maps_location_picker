@@ -61,6 +61,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
     this.mapActionsBuilder,
     this.floatingBtnsColor,
     this.onDefaultMapTypeToggle,
+    required this.polylines,
   }) : super(key: key);
 
   final LatLng initialTarget;
@@ -110,6 +111,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
 
   final Set<Polygon> polygons;
   final Set<Marker> markers;
+  final Set<Polyline> polylines;
   final Set<ClusterManager> clusterManagers;
 
   final String? style;
@@ -266,6 +268,7 @@ class GoogleMapLocationPicker extends StatelessWidget {
         ),
       polygons: polygons,
       markers: markers,
+      polylines: polylines,
     );
   }
 
