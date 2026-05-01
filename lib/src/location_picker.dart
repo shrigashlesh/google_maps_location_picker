@@ -480,32 +480,22 @@ class _PlacePickerState extends State<LocationPickerViewer> {
   }
 
   _pickPrediction(Prediction prediction) async {
-    provider!.placeSearchingState = SearchingState.Searching;
-
-    final PlacesDetailsResponse response =
-        await provider!.places.getDetailsByPlaceId(
-      prediction.placeId!,
-      sessionToken: provider!.sessionToken,
-      language: widget.autocompleteLanguage,
+    final placeId = prediction.placeId;
+    if (placeId == null) return;
+    final prov = provider;
+    if (prov == null) return;
+    prov.placeSearchingState = SearchingState.Searching;
+    final locationSearchService = LocationSearchService.fromProvider(prov);
+    final pickResult = await locationSearchService.pickResultFromPlaceId(
+      placeId: placeId,
+      sessionToken: prov.sessionToken,
+      language: widget.autocompleteLanguage ?? 'en',
+      onFailed: widget.onAutoCompleteFailed,
     );
 
-    if (response.errorMessage?.isNotEmpty == true ||
-        response.status == "REQUEST_DENIED") {
-      if (widget.onAutoCompleteFailed != null) {
-        widget.onAutoCompleteFailed!(response.status);
-      }
-      return;
-    }
-    // final nearby = await provider!.places.searchNearbyWithRankBy(
-    //   response.result.geometry!.location,
-    //   'distance',
-    //   keyword: 'river',
-    //   type: 'natural_feature',
-    // );
-    // log(
-    //   nearby.results.map((e) => e.name).toString(),
-    // );
-    provider!.selectedPlace = PickResult.fromPlaceDetailResult(response.result);
+    if (pickResult == null) return;
+
+    provider!.selectedPlace = pickResult;
 
     // Prevents searching again by camera movement.
     provider!.isAutoCompleteSearching = true;

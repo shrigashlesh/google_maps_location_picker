@@ -297,11 +297,11 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
 
   _performAutoCompleteSearch(String searchTerm) async {
     PlaceProvider provider = PlaceProvider.of(context, listen: false);
+    final locationSearchService = LocationSearchService.fromProvider(provider);
 
     if (searchTerm.isNotEmpty) {
-      final PlacesAutocompleteResponse response =
-          await provider.places.autocomplete(
-        searchTerm,
+      final response = await locationSearchService.placesAutocomplete(
+        searchTerm: searchTerm,
         sessionToken: widget.sessionToken,
         location: provider.currentPosition == null
             ? null
@@ -311,19 +311,14 @@ class AutoCompleteSearchState extends State<AutoCompleteSearch> {
         offset: widget.autocompleteOffset,
         radius: widget.autocompleteRadius,
         language: widget.autocompleteLanguage,
-        types: widget.autocompleteTypes ?? const ["natural_feature"],
-        components: widget.autocompleteComponents ?? const [],
+        types: widget.autocompleteTypes,
+        components: widget.autocompleteComponents,
         strictbounds: widget.strictBounds ?? false,
         region: widget.region,
+        onSearchFailed: widget.onSearchFailed,
       );
 
-      if (response.errorMessage?.isNotEmpty == true ||
-          response.status == "REQUEST_DENIED") {
-        if (widget.onSearchFailed != null) {
-          widget.onSearchFailed!(response.status);
-        }
-        return;
-      }
+      if (response == null) return;
 
       _displayOverlay(_buildPredictionOverlay(response.predictions));
     }

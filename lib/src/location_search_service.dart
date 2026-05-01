@@ -126,6 +126,66 @@ class LocationSearchService {
 
     return PickResult.fromGeocodingResult(response.results[0]);
   }
+
+  /// Runs Places Autocomplete. Returns `null` when the API returns an error or
+  /// `REQUEST_DENIED` (after invoking [onSearchFailed] if provided).
+  Future<PlacesAutocompleteResponse?> placesAutocomplete({
+    required String searchTerm,
+    String? sessionToken,
+    Location? location,
+    num? offset,
+    num? radius,
+    String? language,
+    List<String>? types,
+    List<Component>? components,
+    bool strictbounds = false,
+    String? region,
+    void Function(String status)? onSearchFailed,
+  }) async {
+    final PlacesAutocompleteResponse response = await _places.autocomplete(
+      searchTerm,
+      sessionToken: sessionToken,
+      location: location,
+      offset: offset,
+      radius: radius,
+      language: language,
+      types: types ?? const [],
+      components: components ?? const [],
+      strictbounds: strictbounds,
+      region: region,
+    );
+
+    if (response.errorMessage?.isNotEmpty == true ||
+        response.status == "REQUEST_DENIED") {
+      onSearchFailed?.call(response.status);
+      return null;
+    }
+
+    return response;
+  }
+
+  /// Loads Place Details for [placeId]. Returns `null` when the API returns an
+  /// error or `REQUEST_DENIED` (after invoking [onFailed] if provided).
+  Future<PickResult?> pickResultFromPlaceId({
+    required String placeId,
+    String? sessionToken,
+    String? language,
+    void Function(String status)? onFailed,
+  }) async {
+    final PlacesDetailsResponse response = await _places.getDetailsByPlaceId(
+      placeId,
+      sessionToken: sessionToken,
+      language: language,
+    );
+
+    if (response.errorMessage?.isNotEmpty == true ||
+        response.status == "REQUEST_DENIED") {
+      onFailed?.call(response.status);
+      return null;
+    }
+
+    return PickResult.fromPlaceDetailResult(response.result);
+  }
 }
 
 class LocationSearchException implements Exception {
