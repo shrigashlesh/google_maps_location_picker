@@ -92,45 +92,51 @@ class PickResult {
 
 extension PickResultX on PickResult {
   String get shortenedAddress {
-    if (addressComponents == null || addressComponents!.isEmpty) {
-      return geometry?.location != null
-          ? '${geometry!.location.lat.toStringAsPrecision(6)}, ${geometry!.location.lng.toStringAsPrecision(6)}'
-          : 'N.A';
+    const fallback = 'N.A';
+    final loc = geometry?.location;
+
+    String coordinatesLabel() {
+      if (loc == null) return fallback;
+      final lat = loc.lat;
+      final lng = loc.lng;
+      return '${lat.toStringAsPrecision(6)}, ${lng.toStringAsPrecision(6)}';
     }
 
-    List<String> addressParts = [];
+    final components = addressComponents ?? <AddressComponent>[];
+    final addressParts = <String>[];
 
     // Collect relevant address components in order of priority
-    for (var component in addressComponents!) {
-      if (component.types.contains('route') || // Street name
-          component.types.contains('sublocality') || // Sub-locality
-          component.types.contains('locality') || // City
-          component.types.contains('administrative_area_level_1')) {
-        // State
-        addressParts.add(component.longName);
+    for (final component in components) {
+      final types = component.types;
+      if (types.contains('route') ||
+          types.contains('sublocality') ||
+          types.contains('locality') ||
+          types.contains('administrative_area_level_1')) {
+        final piece = component.longName.trim();
+        if (piece.isNotEmpty) {
+          addressParts.add(piece);
+        }
       }
     }
 
-    // If address parts are empty, return lat/lng instead
     if (addressParts.isEmpty) {
-      return geometry?.location != null
-          ? '${geometry!.location.lat}, ${geometry!.location.lng}'
-          : 'N.A';
+      return coordinatesLabel();
     }
 
-    // Limit to 3 components + country short name (if available)
-    addressParts = addressParts.take(3).toList();
+    // Limit to 4 components + country short name (if available)
+    final shortenedAddressParts = addressParts.take(4).toList();
 
-    // Replace country with its short name if available
-    var countryComponent = addressComponents!.firstWhere(
+    final countryComponent = components.firstWhere(
       (c) => c.types.contains('country'),
-      orElse: () => AddressComponent(longName: '', shortName: '', types: []),
+      orElse: () =>
+          AddressComponent(longName: '', shortName: '', types: const []),
     );
 
-    if (countryComponent.shortName.isNotEmpty) {
-      addressParts.add(countryComponent.shortName);
+    final countryCode = countryComponent.shortName.trim();
+    if (countryCode.isNotEmpty) {
+      shortenedAddressParts.add(countryCode);
     }
 
-    return addressParts.join(', ');
+    return shortenedAddressParts.join(', ');
   }
 }
